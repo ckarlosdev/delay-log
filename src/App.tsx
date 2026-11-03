@@ -4,11 +4,12 @@ import Jobdata from "./components/Jobdata";
 import MainData from "./components/MainData";
 import { useSearchParams } from "react-router-dom";
 import { useContextStore } from "./stores/useContextStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import PopUp from "./components/PopUp";
 import useDelayLogStore from "./stores/useDelayLog";
 import { useSignatureStore } from "./stores/useSignatureStore";
 import { useGetDelayLog } from "./hooks/useDelayLog";
+import { useReactToPrint } from "react-to-print";
 
 function App() {
   const [searchParams] = useSearchParams();
@@ -38,10 +39,10 @@ function App() {
 
     if (isNewAction || isNewReportWithoutOrder) {
       handleReset();
-      console.log("It's new");
+      // console.log("It's new");
     }
 
-    console.log(jobId, delayLogId);
+    // console.log(jobId, delayLogId);
     setIds(jobId, delayLogId);
     setIsLoaded(true);
   }, []);
@@ -57,11 +58,18 @@ function App() {
     }
   }, [delayLogData]);
 
+  const componenteRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: componenteRef,
+    documentTitle: `Change Order ${delayLogData?.delayDate}`,
+  });
+
   if (!isLoaded) return <div>Loading data...</div>;
 
   return (
     <>
-      <Container>
+      <Container ref={componenteRef} className="print-container">
         <Row className="justify-content-md-center">
           <Col>
             <Title children={"Delay Log"} />
@@ -74,7 +82,7 @@ function App() {
         </Row>
         <Row>
           <Col>
-            <MainData />
+            <MainData onPrint={handlePrint} />
           </Col>
         </Row>
       </Container>

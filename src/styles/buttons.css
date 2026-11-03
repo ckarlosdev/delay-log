@@ -1,0 +1,54 @@
+@media print {
+  .title-flex-container {
+    display: block !important; /* Rompe el flexbox para que no empuje el título */
+    text-align: center !important; /* Centra el contenido horizontalmente */
+    width: 100% !important;
+  }
+
+  .title-flex-container > div {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    flex: none !important; /* Anula las propiedades flex individuales */
+  }
+
+  /* Oculta el botón y cualquier otro elemento no deseado al imprimir */
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    size: letter; /* O 'A4' según tu región */
+    margin: 10mm; /* Quitamos los márgenes automáticos del navegador */
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white !important;
+  }
+  .print-container {
+    width: 100%; /* Ocupa el ancho del papel */
+    max-width: 210mm; /* Límite de ancho para que no se estire de más */
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    transform: scale(1); /* Asegura que no haya escalado extraño */
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  .salto-pagina {
+    page-break-before: always; /* Fuerza el salto antes de este elemento */
+    margin-top: 20mm; /* Espacio opcional al inicio de la nueva hoja */
+  }
+}

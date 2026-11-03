@@ -4,9 +4,10 @@ import { Button } from "react-bootstrap";
 import LogoutButton from "./LogoutButton";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useContextStore } from "../stores/useContextStore";
-import useUser from "../hooks/useUser";
 import useDelayLogStore from "../stores/useDelayLog";
 import { useSignatureStore } from "../stores/useSignatureStore";
+import useUser from "../hooks/useUser";
+import "../styles/buttons.css";
 
 type Props = { children: ReactNode };
 
@@ -17,6 +18,8 @@ function Title({ children }: Props) {
 
   const { reset: resetDelayLog } = useDelayLogStore();
   const { reset: resetSignatures } = useSignatureStore();
+
+  if (isLoading) return <p>Loading user data...</p>;
 
   const handleReset = () => {
     resetDelayLog();
@@ -103,20 +106,7 @@ function Title({ children }: Props) {
             </span>
           </div>
 
-          {/* Botón de Logout */}
           <LogoutButton />
-          {/* <Button
-            variant="outline-danger"
-            style={{
-              borderRadius: "8px",
-              fontWeight: "600",
-              width: "110px",
-              height: "38px",
-              fontSize: "14px",
-            }}
-          >
-            Logout
-          </Button> */}
         </div>
       </div>
     </div>

@@ -1,44 +1,51 @@
+import { useState } from "react";
 import { Button } from "react-bootstrap";
+import { useAuthStore } from "../stores/useAuthStore";
+import useDelayLogStore from "../stores/useDelayLog";
+import { useSignatureStore } from "../stores/useSignatureStore";
+import { api } from "../hooks/apiConfig";
+import "../styles/buttons.css";
 
 type Props = {};
 
 function LogoutButton({}: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+  const logout = useAuthStore((state) => state.logout);
+
+  const { reset: resetDelay } = useDelayLogStore();
+  const { reset: resetSignatures } = useSignatureStore();
+
   const handleLogout = async () => {
-    // setIsLoading(true);
-    // try {
-    //   // 1. Avisar al servidor para revocar el token en la DB
-    //   if (refreshToken) {
-    //     await api.post("/auth/revoke", { refreshToken });
-    //   }
-    // } catch (error) {
-    //   console.error(
-    //     "Error al revocar token, cerrando sesión localmente...",
-    //     error,
-    //   );
-    // } finally {
-    //   logout();
-    //   window.location.href = "https://ckarlosdev.github.io/login/";
-    // }
+    setIsLoading(true);
+    try {
+      // 1. Avisar al servidor para revocar el token en la DB
+      if (refreshToken) {
+        await api.post("/auth/revoke", { refreshToken });
+      }
+    } catch (error) {
+      console.error(
+        "Error al revocar token, cerrando sesión localmente...",
+        error,
+      );
+    } finally {
+      handleReset();
+      logout();
+      window.location.href = "https://ckarlosdev.github.io/login/";
+    }
+  };
+
+  const handleReset = () => {
+    resetDelay();
+    resetSignatures();
   };
 
   return (
-    // <Button
-    //   onClick={handleLogout}
-    //   //   disabled={isLoading}
-    //   variant="outline-danger"
-    //   style={{
-    //     borderRadius: "10px",
-    //     fontWeight: "bold",
-    //     width: "120px",
-    //     height: "40px",
-    //   }}
-    // >
-    //   Logging out
-    //   {/* {isLoading ? <span>Logging out</span> : <>Logout</>} */}
-    // </Button>
-
     <Button
+      className="no-print"
       variant="outline-danger"
+      onClick={handleLogout}
+      disabled={isLoading}
       style={{
         borderRadius: "8px",
         fontWeight: "600",
@@ -47,7 +54,7 @@ function LogoutButton({}: Props) {
         fontSize: "14px",
       }}
     >
-      Logout
+      {isLoading ? <span>Logging out</span> : <>Logout</>}
     </Button>
   );
 }

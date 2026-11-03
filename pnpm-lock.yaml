@@ -12,8 +12,8 @@ importers:
         specifier: ^5.101.0
         version: 5.101.0(react@19.2.7)
       axios:
-        specifier: ^1.18.0
-        version: 1.18.0
+        specifier: ^1.21.0
+        version: 1.21.0(debug@4.4.3)
       bootstrap:
         specifier: ^5.3.8
         version: 5.3.8(@popperjs/core@2.11.8)
@@ -546,8 +546,8 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  axios@1.18.0:
-    resolution: {integrity: sha512-E32NzpYKp++W7XRe52rHiXV2ehxmh3wbdgO7MHeFM+vqxLBYHzt0ElkiImtOBxtOmyp0yoC8C6uESVV84Y2/hw==}
+  axios@1.21.0:
+    resolution: {integrity: sha512-YCzXMB53Q9PZBsh7yN7wtapit4WepwcHS2fP8QhGsBxSz5YtgYobV7GGlWlAJi+RxfU77GQTQi2DSLUma42EYA==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -1927,9 +1927,9 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  axios@1.18.0:
+  axios@1.21.0(debug@4.4.3):
     dependencies:
-      follow-redirects: 1.16.0
+      follow-redirects: 1.16.0(debug@4.4.3)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
@@ -2184,7 +2184,9 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  follow-redirects@1.16.0: {}
+  follow-redirects@1.16.0(debug@4.4.3):
+    optionalDependencies:
+      debug: 4.4.3
 
   form-data@4.0.6:
     dependencies:

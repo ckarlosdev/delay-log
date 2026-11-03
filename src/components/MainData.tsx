@@ -8,9 +8,9 @@ import Costs from "./Costs";
 import ActionButtons from "./ActionButtons";
 import PreViewer from "./PreViewer";
 
-type Props = {};
+type Props = { onPrint: () => void };
 
-function MainData({}: Props) {
+function MainData({ onPrint }: Props) {
   const { data: employees } = useEmployees();
   const { delayLogData, setDelayLogData } = useDelayLogStore();
 
@@ -28,7 +28,7 @@ function MainData({}: Props) {
 
   return (
     <>
-      <Form className="pb-5 mx-auto" >
+      <Form className="pb-5 mx-auto">
         <Card
           className="shadow-sm border-0 bg-white mb-4"
           style={{ borderRadius: "12px" }}
@@ -124,13 +124,12 @@ function MainData({}: Props) {
         <Costs />
         <DelayDetails />
         <TimesTracker />
-        {delayLogData?.delayStatus === "FINALIZED" ||
-        delayLogData?.delayStatus === "VOIDED" ? (
+        {delayLogData?.delayStatus === "FINALIZED" ? (
           <PreViewer />
         ) : (
           <SignatureArea />
         )}
-        <ActionButtons />
+        <ActionButtons onPrint={onPrint} />
       </Form>
     </>
   );

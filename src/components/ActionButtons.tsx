@@ -1,24 +1,27 @@
 import { Badge, Button, Card, Col, Row, Spinner } from "react-bootstrap";
 import useDelayLogStore from "../stores/useDelayLog";
 import { useSignatureStore } from "../stores/useSignatureStore";
-import { useAuthStore } from "../stores/useAuthStore";
 import { useContextStore } from "../stores/useContextStore";
 import useModalsStore from "../stores/ueModalStore";
 import useOptions from "../hooks/useOptions";
 import { useFinalize, useSaveDelayLog } from "../hooks/useDelayLog";
 
-type Props = {};
+type Props = {
+  onPrint: () => void;
+};
 
-const ActionButtons = (props: Props) => {
-  const {
-    delayLogData,
-    setDelayLogData,
-    setFullData,
-    reset: resetDelayData,
-  } = useDelayLogStore();
+const ActionButtons = ({ onPrint }: Props) => {
+  const { delayLogData, setDelayLogData, setFullData } = useDelayLogStore();
   const { data: optionsList } = useOptions();
   const jobId = useContextStore((s) => s.jobId);
-  const { subcontractorData, contractorData, reset } = useSignatureStore(); // Traemos una acción para limpiar firmas si la tienes
+  const {
+    subcontractorData,
+    subcontractorName,
+    contractorData,
+    contractorName,
+    syncSavedSignatures,
+    reset,
+  } = useSignatureStore(); // Traemos una acción para limpiar firmas si la tienes
   const { setModalConfig, setShowPopupModal } = useModalsStore();
   const { mutate, isPending: isSavingReport } = useSaveDelayLog();
   const { mutate: mutateFinalize, isPending: isFinalizing } = useFinalize();
@@ -33,12 +36,14 @@ const ActionButtons = (props: Props) => {
       signaturesPayload.push({
         signatureRole: "SUBCONTRACTOR",
         signatureData: subcontractorData,
+        signedBy: subcontractorName,
       });
     }
     if (contractorData) {
       signaturesPayload.push({
         signatureRole: "CONTRACTOR",
         signatureData: contractorData,
+        signedBy: contractorName,
       });
     }
 
@@ -56,13 +61,17 @@ const ActionButtons = (props: Props) => {
     if (!validateData()) return;
 
     const payload = buildCurrentPayload();
-    console.log("Saving payload:", payload);
+    // console.log("Saving payload:", payload);
 
     mutate(
       { reportData: payload },
       {
         onSuccess: (response) => {
           const savedDelayLog = response.data;
+
+          if (savedDelayLog.signatures) {
+            syncSavedSignatures(savedDelayLog.signatures);
+          }
 
           // CRÍTICO: Sincronizar el ID y datos generados por el servidor con Zustand
           if (setFullData) {
@@ -71,6 +80,7 @@ const ActionButtons = (props: Props) => {
             // Alternativa si manejas setters por campo:
             setDelayLogData("id", savedDelayLog.id);
             setDelayLogData("delayStatus", savedDelayLog.delayStatus);
+            setDelayLogData("signatures", savedDelayLog.signatures);
           }
 
           console.log("Delay log saved successfully.");
@@ -103,8 +113,6 @@ const ActionButtons = (props: Props) => {
   };
 
   const validateData = () => {
-    console.log("validateData");
-
     if (delayLogData.employeeId === null || delayLogData.employeeId === 0) {
       setModalConfig({
         title: "Action Required",
@@ -129,7 +137,6 @@ const ActionButtons = (props: Props) => {
     }
 
     if (delayLogData.location === null || delayLogData.location === "") {
-
       setModalConfig({
         title: "Action Required",
         body: "Area/Location field missing.",
@@ -142,7 +149,6 @@ const ActionButtons = (props: Props) => {
     }
 
     if (delayLogData.location === null) {
-
       setModalConfig({
         title: "Action Required",
         body: "Area/Location field missing.",
@@ -151,6 +157,86 @@ const ActionButtons = (props: Props) => {
 
       setShowPopupModal(true);
       return false;
+    }
+
+    // =========================================================
+    // VALIDACIÓN DE FIRMAS (DRAFT y FINALIZED)
+    // =========================================================
+
+    // --- 1. Extraer estados de firmas del Subcontratista ---
+    const savedSubcontractorSig = delayLogData.signatures?.find(
+      (s) => s.signatureRole === "SUBCONTRACTOR",
+    );
+    const hasSubcontractorCanvas = !!subcontractorData; // Dibujo local activo
+    const hasSubcontractorSaved = !!savedSubcontractorSig?.filePath; // Firma en DB
+    const hasSubcontractorSig = hasSubcontractorCanvas || hasSubcontractorSaved;
+
+    const hasSubcontractorInputName = !!subcontractorName?.trim(); // Nombre local escrito
+    const hasSubcontractorSavedName = !!savedSubcontractorSig?.signedBy?.trim(); // Nombre en DB
+    const hasSubcontractorName =
+      hasSubcontractorInputName || hasSubcontractorSavedName;
+
+    // --- 2. Extraer estados de firmas del Contratista ---
+    const savedContractorSig = delayLogData.signatures?.find(
+      (s) => s.signatureRole === "CONTRACTOR",
+    );
+    const hasContractorCanvas = !!contractorData; // Dibujo local activo
+    const hasContractorSaved = !!savedContractorSig?.filePath; // Firma en DB
+    const hasContractorSig = hasContractorCanvas || hasContractorSaved;
+
+    const hasContractorInputName = !!contractorName?.trim(); // Nombre local escrito
+    const hasContractorSavedName = !!savedContractorSig?.signedBy?.trim(); // Nombre en DB
+    const hasContractorName = hasContractorInputName || hasContractorSavedName;
+
+    // =========================================================
+    // REGLA DE CONSISTENCIA (Se aplica tanto en DRAFT como en FINALIZED)
+    // Si se interactúa con una sección, debe completarse (Firma <=> Nombre)
+    // =========================================================
+
+    // Validar Subcontratista
+    if (hasSubcontractorSig !== hasSubcontractorName) {
+      setModalConfig({
+        title: "Incomplete Subcontractor Signature",
+        body: hasSubcontractorSig
+          ? "Please enter the printed name for the Subcontractor."
+          : "Please draw your signature in the Subcontractor area.",
+        variant: "warning",
+      });
+      setShowPopupModal(true);
+      return false;
+    }
+
+    // Validar Contratista
+    if (hasContractorSig !== hasContractorName) {
+      setModalConfig({
+        title: "Incomplete Contractor Signature",
+        body: hasContractorSig
+          ? "Please enter the printed name for the Contractor."
+          : "Please draw your signature in the Contractor area.",
+        variant: "warning",
+      });
+      setShowPopupModal(true);
+      return false;
+    }
+
+    // =========================================================
+    // REGLA DE OBLIGATORIEDAD (Solo se aplica en FINALIZED)
+    // Al menos una de las dos partes debe haber firmado de forma completa
+    // =========================================================
+    if (delayLogData.delayStatus !== "DRAFT") {
+      const isSubcontractorComplete =
+        hasSubcontractorSig && hasSubcontractorName;
+      const isContractorComplete = hasContractorSig && hasContractorName;
+
+      if (!isSubcontractorComplete && !isContractorComplete) {
+        setModalConfig({
+          title: "Signature Required",
+          body: "At least one complete signature (both drawing and printed name) is required to finalize the report.",
+          variant: "warning",
+        });
+        setShowPopupModal(true);
+        return false;
+      }
     }
 
     // =========================================================
@@ -277,7 +363,6 @@ const ActionButtons = (props: Props) => {
     );
 
     if (hasInvalidRow) {
-
       setModalConfig({
         title: "Action Required",
         body: "Each time log row must have at least a Date and a Start Time.",
@@ -293,7 +378,20 @@ const ActionButtons = (props: Props) => {
 
   const handleFinalize = () => {
     // 1. Validar presencia de firmas antes de hacer nada
-    if (!subcontractorData && !contractorData) {
+    const savedSubcontractorSig = delayLogData.signatures?.find(
+      (s) => s.signatureRole === "SUBCONTRACTOR",
+    );
+    const savedContractorSig = delayLogData.signatures?.find(
+      (s) => s.signatureRole === "CONTRACTOR",
+    );
+
+    // 2. Determinar si al menos uno de los roles tiene firma (localmente o guardada en DB)
+    const hasSubcontractor =
+      !!subcontractorData || !!savedSubcontractorSig?.filePath;
+    const hasContractor = !!contractorData || !!savedContractorSig?.filePath;
+
+    // 3. Validar presencia de firmas híbridas antes de hacer nada
+    if (!hasSubcontractor && !hasContractor) {
       setModalConfig({
         title: "Signature Required",
         body: "At least one signature (Contractor or Subcontractor) is required to finalize the order.",
@@ -396,7 +494,7 @@ const ActionButtons = (props: Props) => {
                     <Button
                       variant="primary"
                       className="px-4 py-2 fw-bold d-flex align-items-center no-print"
-                      //   onClick={() => onPrint()}
+                      onClick={() => onPrint()}
                     >
                       Download PDF
                     </Button>

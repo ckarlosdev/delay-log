@@ -52,7 +52,7 @@ export type DelayOption = {
 export type DelaySignature = {
   id: number;
   signatureRole: string;
-  company: string;
+  signedBy: string;
   filePath: string;
 };
 
@@ -83,5 +83,6 @@ export type ModalConfiguration = {
 export type Signature = {
   id: number;
   signatureRole: string;
+  signedBy: string;
   filePath: string;
 };

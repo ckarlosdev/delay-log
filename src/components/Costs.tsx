@@ -1,11 +1,17 @@
 import { Card, Col, Form, Row } from "react-bootstrap";
 import useDelayLogStore from "../stores/useDelayLog";
+import { useAuthStore } from "../stores/useAuthStore";
 
 type Props = {};
 
 function Costs({}: Props) {
   const { delayLogData, setDelayLogData } = useDelayLogStore();
   const isFinalized = delayLogData?.delayStatus === "FINALIZED";
+  const { user: userAuth } = useAuthStore();
+
+  const isAuthorized = userAuth?.roles?.some(
+    (role) => role.name === "ROLE_ADMIN" || role.name === "ROLE_OPERATION",
+  );
 
   return (
     <>
@@ -36,20 +42,22 @@ function Costs({}: Props) {
               </Form.Group>
             </Col>
             <Col md={6} xs={12}>
-              <Form.Group>
-                <Form.Label className="fw-semibold text-secondary small mb-1">
-                  Cost Impact
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  className="border-secondary-subtle py-2.5 text-muted"
-                  style={{ fontSize: "14px", borderRadius: "8px" }}
-                  placeholder="Estimmated labor cost impact..."
-                  value={delayLogData.cost}
-                  onChange={(e) => setDelayLogData("cost", e.target.value)}
-                  disabled={isFinalized}
-                />
-              </Form.Group>
+              {isAuthorized && (
+                <Form.Group>
+                  <Form.Label className="fw-semibold text-secondary small mb-1">
+                    Cost Impact
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    className="border-secondary-subtle py-2.5 text-muted"
+                    style={{ fontSize: "14px", borderRadius: "8px" }}
+                    placeholder="Estimated labor cost impact..."
+                    value={delayLogData.cost}
+                    onChange={(e) => setDelayLogData("cost", e.target.value)}
+                    disabled={isFinalized}
+                  />
+                </Form.Group>
+              )}
             </Col>
 
             <Col xs={12}>

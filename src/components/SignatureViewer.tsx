@@ -6,12 +6,14 @@ type Props = {
 };
 
 function SignatureViewer({ signature }: Props) {
-  const BACKEND_BASE_URL = "http://localhost:8086";
+  // 1. Apunta directamente a tu API Gateway de Render (que ya tiene HTTPS)
+  const BACKEND_BASE_URL = "https://api-gateway-px44.onrender.com";
 
+  // 2. Unimos la URL base de Render con el path que viene en el JSON
   const finalPath = signature?.filePath
     ? signature.filePath.startsWith("http")
       ? signature.filePath
-      : `${BACKEND_BASE_URL}${signature.filePath}`
+      : `${BACKEND_BASE_URL}${signature.filePath.startsWith("/") ? "" : "/"}${signature.filePath}`
     : "";
 
   const handleImageError = (
@@ -28,17 +30,34 @@ function SignatureViewer({ signature }: Props) {
       style={{ minWidth: "280px", minHeight: "160px" }}
     >
       {signature?.filePath ? (
-        <img
-          src={finalPath}
-          alt={`Firma de ${signature?.signatureRole}`}
-          style={{
-            maxWidth: "100%",
-            maxHeight: "120px",
-            objectFit: "contain",
-            backgroundColor: "#f8f9fa", // Fondo claro por si firmaron en transparente
-          }}
-          onError={handleImageError}
-        />
+        <>
+          {/* Contenedor de la Imagen */}
+          <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
+            <img
+              src={finalPath}
+              alt={`Firma de ${signature?.signatureRole}`}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100px", // Bajamos ligeramente a 100px para que no empuje al texto
+                objectFit: "contain",
+                backgroundColor: "#f8f9fa", // Fondo claro por si firmaron en transparente
+              }}
+              onError={handleImageError}
+            />
+          </div>
+
+          {/* ACLARACIÓN DE LA FIRMA (signedBy) */}
+          {signature?.signedBy && (
+            <div className="border-top pt-2">
+              <span
+                className="d-block fw-bold text-dark mb-0"
+                style={{ fontSize: "14px" }}
+              >
+                {signature.signedBy}
+              </span>
+            </div>
+          )}
+        </>
       ) : (
         <p className="text-danger mt-4">⚠️ No Signature</p>
       )}
