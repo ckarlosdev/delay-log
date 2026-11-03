@@ -31,7 +31,7 @@ const initialData = {
   impactEquipment: "",
   summary: "",
   resolution: "",
-  workers: "",
+  workers: "1",
   cost: "",
   delayStatus: "DRAFT",
   times: [],

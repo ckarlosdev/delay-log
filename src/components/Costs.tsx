@@ -31,12 +31,25 @@ function Costs({}: Props) {
                   Number of Workers Affected
                 </Form.Label>
                 <Form.Control
-                  type="text"
+                  type="number"
+                  min="1"
+                  step="1"
                   placeholder="Please specify the number of workers affected..."
                   className="border-secondary-subtle py-2.5 text-muted"
                   style={{ fontSize: "14px", borderRadius: "8px" }}
                   value={delayLogData.workers}
-                  onChange={(e) => setDelayLogData("workers", e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    if (value === "" || /^[1-9]\d*$/.test(value)) {
+                      setDelayLogData("workers", value);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Si el campo queda vacío al salir, lo restablece a "1" por defecto
+                    if (e.target.value === "" || e.target.value === "0") {
+                      setDelayLogData("workers", "1");
+                    }
+                  }}
                   disabled={isFinalized}
                 />
               </Form.Group>

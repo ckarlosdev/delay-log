@@ -70,8 +70,13 @@ function TimesTracker({}: Props) {
   };
 
   // 5. Calcular la sumatoria de todas las filas registradas
-  const grandTotalHours = currentTimes.reduce((sum, row) => {
+  const grandSubTotalHours = currentTimes.reduce((sum, row) => {
     return sum + calculateHours(row.startTime, row.endTime);
+  }, 0);
+
+  const grandTotalHours = currentTimes.reduce((sum, row) => {
+    let totalWorkers = Number(delayLogData.workers);
+    return sum + calculateHours(row.startTime, row.endTime) * totalWorkers;
   }, 0);
 
   const isFinalized = delayLogData?.delayStatus === "FINALIZED";
@@ -249,19 +254,47 @@ function TimesTracker({}: Props) {
           </div>
 
           {/* Sumatoria global dinámica */}
-          <div className="d-flex justify-content-end align-items-center mt-3 pt-2 pe-2">
-            <span
-              className="text-secondary fw-semibold small me-3 text-uppercase"
-              style={{ letterSpacing: "0.05em", fontSize: "11px" }}
-            >
-              Total Logs Hours:
-            </span>
-            <span
-              className="badge bg-dark px-3 py-2 fs-6 fw-bold rounded-2"
-              style={{ fontFamily: "monospace" }}
-            >
-              {grandTotalHours.toFixed(2)} hrs
-            </span>
+          <div
+            className="bg-light border border-secondary-subtle rounded-3 p-3 mt-4 ms-auto"
+            style={{ maxWidth: "350px" }}
+          >
+            {/* Subtotal */}
+            <div className="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary-subtle">
+              <span
+                className="text-secondary fw-semibold text-uppercase"
+                style={{ letterSpacing: "0.05em", fontSize: "11px" }}
+              >
+                Subtotal Hours
+              </span>
+              <span
+                className="text-dark fw-bold font-monospace"
+                style={{ fontSize: "15px" }}
+              >
+                {grandSubTotalHours.toFixed(2)}{" "}
+                <span
+                  className="text-muted fw-normal"
+                  style={{ fontSize: "12px" }}
+                >
+                  hrs
+                </span>
+              </span>
+            </div>
+
+            {/* Total Logs Hours */}
+            <div className="d-flex justify-content-between align-items-center">
+              <span
+                className="text-dark fw-bold text-uppercase"
+                style={{ letterSpacing: "0.05em", fontSize: "12px" }}
+              >
+                Total Logs Hours
+              </span>
+              <span
+                className="badge bg-primary text-white px-3 py-2 fw-bold font-monospace shadow-sm"
+                style={{ fontSize: "15px", letterSpacing: "0.03em" }}
+              >
+                {grandTotalHours.toFixed(2)} hrs
+              </span>
+            </div>
           </div>
         </Card.Body>
       </Card>
